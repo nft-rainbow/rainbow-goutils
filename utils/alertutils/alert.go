@@ -65,7 +65,7 @@ func (d *dingHelper) DingPanicf(err error, description string, args ...any) {
 }
 
 func (d *dingHelper) DingText(level alert.Severity, brief, detail string) error {
-	if defaultDingHelper == nil {
+	if d == nil {
 		return nil
 	}
 
@@ -84,7 +84,7 @@ func (d *dingHelper) DingText(level alert.Severity, brief, detail string) error 
 		content = fmt.Sprintf("%s: %s", brief, detail)
 	}
 
-	return defaultDingHelper.channel.Send(context.Background(), &alert.Notification{
+	return d.channel.Send(context.Background(), &alert.Notification{
 		Title:    title,
 		Content:  content,
 		Severity: alert.Severity(level),
