@@ -3,7 +3,7 @@ module github.com/nft-rainbow/rainbow-goutils
 go 1.22.1
 
 require (
-	github.com/Conflux-Chain/go-conflux-util v0.2.1
+	github.com/Conflux-Chain/go-conflux-util v0.2.2-0.20250114102326-5a181f74ec59
 	github.com/appleboy/gin-jwt/v2 v2.10.1
 	github.com/ethereum/go-ethereum v1.14.12
 	github.com/gin-gonic/gin v1.10.0
@@ -24,6 +24,7 @@ require (
 )
 
 require (
+	github.com/PagerDuty/go-pagerduty v1.8.0 // indirect
 	github.com/bytedance/sonic v1.12.6 // indirect
 	github.com/bytedance/sonic/loader v0.2.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
@@ -37,7 +38,8 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-telegram/bot v1.2.2 // indirect
 	github.com/goccy/go-json v0.10.4 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/holiman/uint256 v1.3.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
