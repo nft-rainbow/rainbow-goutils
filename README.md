@@ -25,6 +25,6 @@ alert:
 
 ```go
 alertutils.MustInitFromViper()
-alertutils.DingInfo("test")
+alertutils.DingInfof("test")
 alertutils.DingWarnf("test %s", "test")
 ```
