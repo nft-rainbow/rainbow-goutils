@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDingTalkChannel(t *testing.T) {
+func TestRawDingTalkChannel(t *testing.T) {
 	err := alert.NewDingTalkChannel("1", commonutils.Must(alert.NewDingtalkMarkdownFormatter([]string{"Alert"}, []string{"17611422948"})), alert.DingTalkConfig{
 		Webhook:   "xxx",
 		AtMobiles: []string{"YOUR_PHONE"},
@@ -19,4 +19,15 @@ func TestDingTalkChannel(t *testing.T) {
 		Content: "test",
 	})
 	assert.NoError(t, err)
+}
+
+func TestDingInfof(t *testing.T) {
+	ch := alert.NewDingTalkChannel("1", commonutils.Must(alert.NewDingtalkMarkdownFormatter([]string{"Alert"}, []string{"17611422948"})), alert.DingTalkConfig{
+		Webhook:   "YOUR_WEBHOOK",
+		AtMobiles: []string{"YOUR_PHONE"},
+		MsgType:   "markdown",
+	})
+	alert.DefaultManager().Add(ch)
+	defaultDingHelper = &dingHelper{channel: ch}
+	DingInfof("test %v", "test")
 }

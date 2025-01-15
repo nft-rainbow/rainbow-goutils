@@ -15,12 +15,8 @@ type dingHelper struct {
 
 var defaultDingHelper *dingHelper
 
-func DingInfo(pattern string, args ...any) error {
-	return defaultDingHelper.DingInfo(pattern, args...)
-}
-
-func DingWarn(pattern string, args ...any) error {
-	return defaultDingHelper.DingWarn(pattern, args...)
+func DingInfof(pattern string, args ...any) error {
+	return defaultDingHelper.DingInfof(pattern, args...)
 }
 
 func DingWarnf(pattern string, args ...any) error {
@@ -35,18 +31,13 @@ func DingPanicf(err error, description string, args ...any) {
 	defaultDingHelper.DingPanicf(err, description, args...)
 }
 
-func (d *dingHelper) DingInfo(pattern string, args ...any) error {
-	logrus.WithField("args", args).Info(pattern)
-	return d.DingText(alert.SeverityLow, "", fmt.Sprintf(pattern, args...))
-}
-
-func (d *dingHelper) DingWarn(pattern string, args ...any) error {
+func (d *dingHelper) DingInfof(pattern string, args ...any) error {
 	logrus.WithField("args", args).Info(pattern)
 	return d.DingText(alert.SeverityLow, "", fmt.Sprintf(pattern, args...))
 }
 
 func (d *dingHelper) DingWarnf(pattern string, args ...any) error {
-	logrus.WithField("args", args).Warn(pattern)
+	logrus.WithField("args", args).Info(pattern)
 	return d.DingText(alert.SeverityMedium, "", fmt.Sprintf(pattern, args...))
 }
 
@@ -60,7 +51,7 @@ func (d *dingHelper) DingError(err error, describe ...string) error {
 
 func (d *dingHelper) DingPanicf(err error, description string, args ...any) {
 	logrus.WithField("args", args).WithError(err).Error(description)
-	err = d.DingText(alert.SeverityCritical, description, fmt.Sprintf("%+v", err))
+	err = d.DingText(alert.SeverityCritical, fmt.Sprintf(description, args...), fmt.Sprintf("%+v", err))
 	panic(err)
 }
 
@@ -91,15 +82,16 @@ func (d *dingHelper) DingText(level alert.Severity, brief, detail string) error 
 	})
 }
 
+// Initialize alert configuration using Viper.
+// Channels with name set to default and platform set to dingtalk are considered the default channel.
+// If no channel with name set to default exists, no notifications will be sent when call DingXXX methods, and no errors will be raised.
 func MustInitFromViper() {
 	alert.MustInitFromViper()
-	allCh := alert.DefaultManager().All("")
-	for _, ch := range allCh {
-		if ch.Type() == alert.ChannelTypeDingTalk {
-			defaultDingHelper = &dingHelper{channel: ch.(*alert.DingTalkChannel)}
-			return
-		}
+	dh, err := GetDingHelper("default")
+	if err != nil {
+		return
 	}
+	defaultDingHelper = dh
 }
 
 func GetDingHelper(name string) (*dingHelper, error) {
