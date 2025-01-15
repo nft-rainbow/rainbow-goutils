@@ -28,6 +28,6 @@ func TestDingInfof(t *testing.T) {
 		MsgType:   "markdown",
 	})
 	alert.DefaultManager().Add(ch)
-	defaultDingHelper = &dingHelper{channel: ch}
+	defaultDingHelper = &DingHelper{channel: ch}
 	DingInfof("test %v", "test")
 }
