@@ -20,6 +20,8 @@ type GinErrorBody struct {
 type GinError struct {
 	HttpStatus int
 	GinErrorBody
+	i18n          map[string]string
+	messageSuffix string
 }
 
 func NewGinError(httpStatus int, code int, message string) *GinError {
@@ -66,6 +68,12 @@ func NewConflictNormalGinError(message string, data ...interface{}) *GinError {
 	return NewConflictGinError(ERR_CORDE_NORMAL, message, data...)
 }
 
+func (r *GinError) WithI18n(translations map[string]string) *GinError {
+	cloned := *r
+	cloned.i18n = translations
+	return &cloned
+}
+
 func (r *GinError) WithData(data interface{}) *GinError {
 	cloned := *r
 	cloned.Data = data
@@ -74,7 +82,9 @@ func (r *GinError) WithData(data interface{}) *GinError {
 
 func (r *GinError) WithMessage(message string) *GinError {
 	cloned := *r
-	cloned.Message += ": " + message
+	suffix := ": " + message
+	cloned.Message += suffix
+	cloned.messageSuffix += suffix
 	return &cloned
 }
 
@@ -89,8 +99,26 @@ func (r *GinError) Body() GinErrorBody {
 	return r.GinErrorBody
 }
 
+func (r *GinError) BodyForAcceptLanguage(acceptLanguage string) GinErrorBody {
+	if r == nil {
+		return GinErrorBody{}
+	}
+
+	body := r.Body()
+	localizedBaseMessage := r.localizedBaseMessage(acceptLanguage)
+	if localizedBaseMessage == "" {
+		return body
+	}
+	body.Message = localizedBaseMessage + r.messageSuffix
+	return body
+}
+
 func (r *GinError) Render(c *gin.Context) {
-	c.JSON(r.HttpStatus, r.Body())
+	acceptLanguage := ""
+	if c != nil && c.Request != nil {
+		acceptLanguage = c.GetHeader("Accept-Language")
+	}
+	c.JSON(r.HttpStatus, r.BodyForAcceptLanguage(acceptLanguage))
 }
 
 func (r *GinError) IsSameCode(err error) bool {
@@ -103,4 +131,22 @@ func (r *GinError) IsSameCode(err error) bool {
 		return ginErr.Code == r.Code
 	}
 	return false
+}
+
+func (r *GinError) localizedBaseMessage(acceptLanguage string) string {
+	if len(r.i18n) == 0 {
+		return ""
+	}
+	locale := LocaleFromAcceptLanguage(acceptLanguage)
+	if msg, ok := r.i18n[locale]; ok {
+		return msg
+	}
+	// Fallback to the first matched locale in i18n map, if Accept-Language doesn't match any locale in i18n map.
+	// for example, providing "zh-CN" as WithI18n key but "zh-TW" in Accept-Language, it will fallback to "zh-CN" translation
+	for key, msg := range r.i18n {
+		if LocaleFromAcceptLanguage(key) == locale {
+			return msg
+		}
+	}
+	return ""
 }
