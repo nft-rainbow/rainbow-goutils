@@ -37,7 +37,7 @@ func TestLocaleFromAcceptLanguage(t *testing.T) {
 }
 
 func TestBodyForAcceptLanguage_LocalizedFallback(t *testing.T) {
-	err := NewBusinessGinError(194, "no permission").WithI18n(map[string]string{"zh": "沒有權限"})
+	err := NewLocalizedBusinessGinError(194, "no permission", map[string]string{"zh": "沒有權限"})
 
 	if got, want := err.BodyForAcceptLanguage("").Message, "no permission"; got != want {
 		t.Fatalf("default body message=%q, want %q", got, want)
@@ -47,9 +47,8 @@ func TestBodyForAcceptLanguage_LocalizedFallback(t *testing.T) {
 	}
 }
 
-func TestWithI18n_ZhHant(t *testing.T) {
-	err := NewBusinessGinError(194, "no permission").
-		WithI18n(map[string]string{"zh-Hant": "沒有權限"})
+func TestLocalizedConstructor_ZhHant(t *testing.T) {
+	err := NewLocalizedBusinessGinError(194, "no permission", map[string]string{"zh-Hant": "沒有權限"})
 
 	body := err.BodyForAcceptLanguage("zh-Hant")
 	if got, want := body.Message, "沒有權限"; got != want {
@@ -57,15 +56,14 @@ func TestWithI18n_ZhHant(t *testing.T) {
 	}
 }
 
-func TestWithMessage_LocalizesBaseAndKeepsRawSuffix(t *testing.T) {
-	err := NewBadRequestGinError(142, "invalid input").
-		WithI18n(map[string]string{"zh": "無效輸入"}).
-		WithMessage("fiatType is required")
+func TestWithMessage_LocalizesEachSegment(t *testing.T) {
+	err := NewLocalizedBadRequestGinError(142, "invalid input", map[string]string{"zh": "無效輸入"}).
+		WithMessage("fiatType is required", map[string]string{"zh": "fiatType 為必填項"})
 
 	if got, want := err.Message, "invalid input: fiatType is required"; got != want {
 		t.Fatalf("raw message=%q, want %q", got, want)
 	}
-	if got, want := err.BodyForAcceptLanguage("zh-Hant").Message, "無效輸入: fiatType is required"; got != want {
+	if got, want := err.BodyForAcceptLanguage("zh-Hant").Message, "無效輸入: fiatType 為必填項"; got != want {
 		t.Fatalf("localized message=%q, want %q", got, want)
 	}
 }
@@ -73,7 +71,7 @@ func TestWithMessage_LocalizesBaseAndKeepsRawSuffix(t *testing.T) {
 func TestRenderError_UsesAcceptLanguage(t *testing.T) {
 	ctx, recorder := buildGinErrorTestContext("zh-TW")
 
-	RenderError(ctx, NewBusinessGinError(194, "no permission").WithI18n(map[string]string{"zh": "沒有權限"}))
+	RenderError(ctx, NewLocalizedBusinessGinError(194, "no permission", map[string]string{"zh": "沒有權限"}))
 
 	if got, want := recorder.Code, HTTP_STATUS_BUISINESS; got != want {
 		t.Fatalf("status=%d, want %d", got, want)
@@ -90,7 +88,7 @@ func TestRenderError_UsesAcceptLanguage(t *testing.T) {
 func TestRenderResponse_UsesAcceptLanguageForGinError(t *testing.T) {
 	ctx, recorder := buildGinErrorTestContext("zh-CN,zh;q=0.9")
 
-	RenderResponse(ctx, nil, NewBusinessGinError(194, "no permission").WithI18n(map[string]string{"zh": "沒有權限"}))
+	RenderResponse(ctx, nil, NewLocalizedBusinessGinError(194, "no permission", map[string]string{"zh": "沒有權限"}))
 
 	if got, want := recorder.Code, HTTP_STATUS_BUISINESS; got != want {
 		t.Fatalf("status=%d, want %d", got, want)
