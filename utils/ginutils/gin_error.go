@@ -24,8 +24,9 @@ type ginErrorMessageSegment struct {
 }
 
 type GinError struct {
-	HttpStatus int
-	GinErrorBody
+	HttpStatus      int
+	Code            int
+	Data            interface{}
 	messageSegments []ginErrorMessageSegment
 }
 
@@ -33,7 +34,6 @@ func NewGinError(httpStatus int, code int, message string) *GinError {
 	var e GinError
 	e.HttpStatus = httpStatus
 	e.Code = code
-	e.Message = message
 	e.messageSegments = []ginErrorMessageSegment{{raw: message}}
 	return &e
 }
@@ -118,19 +118,27 @@ func (r *GinError) WithMessage(message string, translations ...map[string]string
 		segment.i18n = translations[0]
 	}
 	cloned.messageSegments = append(cloned.messageSegments, segment)
-	cloned.Message = renderMessageSegments(cloned.messageSegments, "")
 	return &cloned
 }
 
 func (r *GinError) Error() string {
+	message := renderMessageSegments(r.messageSegments, "")
 	if r.Data != nil {
-		return fmt.Sprintf("%v: %v. Data: %v", r.Code, r.Message, r.Data)
+		return fmt.Sprintf("%v: %v. Data: %v", r.Code, message, r.Data)
 	}
-	return fmt.Sprintf("%v: %v", r.Code, r.Message)
+	return fmt.Sprintf("%v: %v", r.Code, message)
 }
 
 func (r *GinError) Body() GinErrorBody {
-	return r.GinErrorBody
+	if r == nil {
+		return GinErrorBody{}
+	}
+
+	return GinErrorBody{
+		Code:    r.Code,
+		Message: renderMessageSegments(r.messageSegments, ""),
+		Data:    r.Data,
+	}
 }
 
 func (r *GinError) BodyForAcceptLanguage(acceptLanguage string) GinErrorBody {

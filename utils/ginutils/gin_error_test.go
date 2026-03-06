@@ -60,7 +60,7 @@ func TestWithMessage_LocalizesEachSegment(t *testing.T) {
 	err := NewLocalizedBadRequestGinError(142, "invalid input", map[string]string{"zh": "無效輸入"}).
 		WithMessage("fiatType is required", map[string]string{"zh": "fiatType 為必填項"})
 
-	if got, want := err.Message, "invalid input: fiatType is required"; got != want {
+	if got, want := err.Body().Message, "invalid input: fiatType is required"; got != want {
 		t.Fatalf("raw message=%q, want %q", got, want)
 	}
 	if got, want := err.BodyForAcceptLanguage("zh-Hant").Message, "無效輸入: fiatType 為必填項"; got != want {
