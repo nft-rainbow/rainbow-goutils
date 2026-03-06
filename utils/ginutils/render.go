@@ -28,12 +28,7 @@ func RenderSuccess(c *gin.Context, obj interface{}) {
 
 func RenderResponse(c *gin.Context, obj interface{}, err error) {
 	if err != nil {
-		ginErr, ok := errors.Cause(err).(*GinError)
-		if ok {
-			ginErr.Render(c)
-		} else {
-			NewBusinessNormalGinError(err.Error()).Render(c)
-		}
+		renderGinError(c, ConvertToGinError(err))
 		return
 	}
 
